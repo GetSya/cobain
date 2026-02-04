@@ -1,0 +1,435 @@
+{
+  "users": {
+    "6288213292687@s.whatsapp.net": {
+      "name": "+62 882-1329-2687",
+      "exp": 538,
+      "money": 0,
+      "level": 1,
+      "limit": 20,
+      "age": -1,
+      "regTime": -1,
+      "afk": -1,
+      "afkReason": "",
+      "warn": 0,
+      "role": "Newbie ㋡",
+      "premium": false,
+      "premiumTime": 0,
+      "registered": false,
+      "banned": false,
+      "autolevelup": false
+    },
+    "6288214772441@s.whatsapp.net": {
+      "name": "arasya",
+      "exp": 1114,
+      "money": 0,
+      "level": 1,
+      "limit": 20,
+      "age": 19,
+      "regTime": 1769660866066,
+      "afk": -1,
+      "afkReason": "",
+      "warn": 0,
+      "role": "Newbie ㋡",
+      "premium": false,
+      "premiumTime": 0,
+      "registered": true,
+      "banned": false,
+      "autolevelup": false
+    },
+    "6285183221210@s.whatsapp.net": {
+      "name": "AcaMedia",
+      "exp": 162,
+      "money": 0,
+      "level": 1,
+      "limit": 14,
+      "age": -1,
+      "regTime": -1,
+      "afk": -1,
+      "afkReason": "",
+      "warn": 0,
+      "role": "Newbie ㋡",
+      "premium": false,
+      "premiumTime": 0,
+      "registered": false,
+      "banned": false,
+      "autolevelup": false
+    },
+    "6283111604909@s.whatsapp.net": {
+      "name": "Rahma Dwi Utari",
+      "exp": 11,
+      "money": 0,
+      "level": 1,
+      "limit": 20,
+      "age": -1,
+      "regTime": -1,
+      "afk": -1,
+      "afkReason": "",
+      "warn": 0,
+      "role": "Newbie ㋡",
+      "premium": false,
+      "premiumTime": 0,
+      "registered": false,
+      "banned": false,
+      "autolevelup": false
+    },
+    "6289503816765@s.whatsapp.net": {
+      "name": "Dhieraaa",
+      "exp": 35,
+      "money": 0,
+      "level": 1,
+      "limit": 20,
+      "age": -1,
+      "regTime": -1,
+      "afk": -1,
+      "afkReason": "",
+      "warn": 0,
+      "role": "Newbie ㋡",
+      "premium": false,
+      "premiumTime": 0,
+      "registered": false,
+      "banned": false,
+      "autolevelup": false
+    },
+    "6282191674713@s.whatsapp.net": {
+      "name": "Dytzx",
+      "exp": 34,
+      "money": 0,
+      "level": 1,
+      "limit": 20,
+      "age": -1,
+      "regTime": -1,
+      "afk": -1,
+      "afkReason": "",
+      "warn": 0,
+      "role": "Newbie ㋡",
+      "premium": false,
+      "premiumTime": 0,
+      "registered": false,
+      "banned": false,
+      "autolevelup": false
+    },
+    "6282131548860@s.whatsapp.net": {
+      "name": "Y",
+      "exp": 12,
+      "money": 0,
+      "level": 1,
+      "limit": 20,
+      "age": -1,
+      "regTime": -1,
+      "afk": -1,
+      "afkReason": "",
+      "warn": 0,
+      "role": "Newbie ㋡",
+      "premium": false,
+      "premiumTime": 0,
+      "registered": false,
+      "banned": false,
+      "autolevelup": false
+    },
+    "6288291477960@s.whatsapp.net": {
+      "name": "talenta gratata",
+      "exp": 9,
+      "money": 0,
+      "level": 1,
+      "limit": 20,
+      "age": -1,
+      "regTime": -1,
+      "afk": -1,
+      "afkReason": "",
+      "warn": 0,
+      "role": "Newbie ㋡",
+      "premium": false,
+      "premiumTime": 0,
+      "registered": false,
+      "banned": false,
+      "autolevelup": false
+    },
+    "6282190805102@s.whatsapp.net": {
+      "name": "kii like tylor swift",
+      "exp": 23,
+      "money": 0,
+      "level": 1,
+      "limit": 20,
+      "age": -1,
+      "regTime": -1,
+      "afk": -1,
+      "afkReason": "",
+      "warn": 0,
+      "role": "Newbie ㋡",
+      "premium": false,
+      "premiumTime": 0,
+      "registered": false,
+      "banned": false,
+      "autolevelup": false
+    },
+    "6283899737438@s.whatsapp.net": {
+      "name": "Ryan",
+      "exp": 17,
+      "money": 0,
+      "level": 1,
+      "limit": 20,
+      "age": -1,
+      "regTime": -1,
+      "afk": -1,
+      "afkReason": "",
+      "warn": 0,
+      "role": "Newbie ㋡",
+      "premium": false,
+      "premiumTime": 0,
+      "registered": false,
+      "banned": false,
+      "autolevelup": false
+    },
+    "6281215697342@s.whatsapp.net": {
+      "name": "Donnie",
+      "exp": 6,
+      "money": 0,
+      "level": 1,
+      "limit": 20,
+      "age": -1,
+      "regTime": -1,
+      "afk": -1,
+      "afkReason": "",
+      "warn": 0,
+      "role": "Newbie ㋡",
+      "premium": false,
+      "premiumTime": 0,
+      "registered": false,
+      "banned": false,
+      "autolevelup": false
+    },
+    "6285822217962@s.whatsapp.net": {
+      "name": "Snowy(⁠◕⁠ᴗ⁠◕⁠✿⁠)",
+      "exp": 10,
+      "money": 0,
+      "level": 1,
+      "limit": 20,
+      "age": -1,
+      "regTime": -1,
+      "afk": -1,
+      "afkReason": "",
+      "warn": 0,
+      "role": "Newbie ㋡",
+      "premium": false,
+      "premiumTime": 0,
+      "registered": false,
+      "banned": false,
+      "autolevelup": false
+    },
+    "6285759265978@s.whatsapp.net": {
+      "name": "Rifki Dwiana",
+      "exp": 18,
+      "money": 0,
+      "level": 1,
+      "limit": 20,
+      "age": -1,
+      "regTime": -1,
+      "afk": -1,
+      "afkReason": "",
+      "warn": 0,
+      "role": "Newbie ㋡",
+      "premium": false,
+      "premiumTime": 0,
+      "registered": false,
+      "banned": false,
+      "autolevelup": false
+    },
+    "6285750002709@s.whatsapp.net": {
+      "name": "Ich vermisse dich",
+      "exp": 8,
+      "money": 0,
+      "level": 1,
+      "limit": 20,
+      "age": -1,
+      "regTime": -1,
+      "afk": -1,
+      "afkReason": "",
+      "warn": 0,
+      "role": "Newbie ㋡",
+      "premium": false,
+      "premiumTime": 0,
+      "registered": false,
+      "banned": false,
+      "autolevelup": false
+    },
+    "6289501900758@s.whatsapp.net": {
+      "name": "Dimas p",
+      "exp": 13,
+      "money": 0,
+      "level": 1,
+      "limit": 20,
+      "age": -1,
+      "regTime": -1,
+      "afk": -1,
+      "afkReason": "",
+      "warn": 0,
+      "role": "Newbie ㋡",
+      "premium": false,
+      "premiumTime": 0,
+      "registered": false,
+      "banned": false,
+      "autolevelup": false
+    },
+    "6285940744029@s.whatsapp.net": {
+      "name": "ɱҽყƙα_p̶u̶t̶r̶i̶",
+      "exp": 7,
+      "money": 0,
+      "level": 1,
+      "limit": 20,
+      "age": -1,
+      "regTime": -1,
+      "afk": -1,
+      "afkReason": "",
+      "warn": 0,
+      "role": "Newbie ㋡",
+      "premium": false,
+      "premiumTime": 0,
+      "registered": false,
+      "banned": false,
+      "autolevelup": false
+    }
+  },
+  "chats": {
+    "120363346345553362@g.us": {
+      "sWelcome": "",
+      "sBye": "",
+      "sPromote": "",
+      "sDemote": "",
+      "isBanned": false,
+      "welcome": false,
+      "detect": false,
+      "delete": false
+    },
+    "120363414827708099@g.us": {
+      "sWelcome": "",
+      "sBye": "",
+      "sPromote": "",
+      "sDemote": "",
+      "isBanned": false,
+      "welcome": false,
+      "detect": false,
+      "delete": false
+    },
+    "120363183842805991@g.us": {
+      "sWelcome": "",
+      "sBye": "",
+      "sPromote": "",
+      "sDemote": "",
+      "isBanned": false,
+      "welcome": false,
+      "detect": false,
+      "delete": false
+    }
+  },
+  "stats": {
+    "main-menu.js": {
+      "total": 11,
+      "success": 11,
+      "last": 1770176862326,
+      "lastSuccess": 1770176862326
+    },
+    "xp-profile.js": {
+      "total": 2,
+      "success": 2,
+      "last": 1769659114950,
+      "lastSuccess": 1769659114950
+    },
+    "ai-editimg.js": {
+      "total": 11,
+      "success": 11,
+      "last": 1769663121008,
+      "lastSuccess": 1769663121008
+    },
+    "play.js": {
+      "total": 7,
+      "success": 7,
+      "last": 1770177928440,
+      "lastSuccess": 1770177928440
+    },
+    "xp-register.js": {
+      "total": 2,
+      "success": 2,
+      "last": 1769660866788,
+      "lastSuccess": 1769660866788
+    },
+    "tools-toimg.js": {
+      "total": 2,
+      "success": 2,
+      "last": 1769661531698,
+      "lastSuccess": 1769661531698
+    },
+    "store-addlist.js": {
+      "total": 3,
+      "success": 3,
+      "last": 1769661581369,
+      "lastSuccess": 1769661581369
+    },
+    "main-creator.js": {
+      "total": 2,
+      "success": 2,
+      "last": 1769661637104,
+      "lastSuccess": 1769661637104
+    },
+    "owner-exec.js": {
+      "total": 10,
+      "success": 10,
+      "last": 1769662135354,
+      "lastSuccess": 1769662135354
+    },
+    "ai.js": {
+      "total": 2,
+      "success": 2,
+      "last": 1769661962781,
+      "lastSuccess": 1769661962781
+    },
+    "brat.js": {
+      "total": 2,
+      "success": 2,
+      "last": 1769667539985,
+      "lastSuccess": 1769667539985
+    },
+    "store-list.js": {
+      "total": 2,
+      "success": 2,
+      "last": 1770171774429,
+      "lastSuccess": 1770171774429
+    },
+    "ai-cabo.js": {
+      "total": 7,
+      "success": 6,
+      "last": 1770172327771,
+      "lastSuccess": 1770172294077
+    },
+    "down-ytmp3.js": {
+      "total": 2,
+      "success": 2,
+      "last": 1770176869493,
+      "lastSuccess": 1770176869493
+    },
+    "down-ytmp4.js": {
+      "total": 2,
+      "success": 2,
+      "last": 1770177014083,
+      "lastSuccess": 1770177014083
+    },
+    "down-instagram.js": {
+      "total": 2,
+      "success": 2,
+      "last": 1770177990114,
+      "lastSuccess": 1770177990114
+    }
+  },
+  "msgs": {
+    "andre": {
+      "text": "andre"
+    }
+  },
+  "sticker": {},
+  "settings": {
+    "6288213292687@s.whatsapp.net": {
+      "public": true,
+      "autoread": true,
+      "anticall": true
+    }
+  }
+}
