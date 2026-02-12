@@ -107,4 +107,32 @@ handler.tags = ['main'];
 handler.command = /^(buyprem)$/i;
 export default handler;
 
-// Fungsi createQris dan checkStatus tetap sama seperti sebelumnya
+
+// --- Fungsi createQris dan checkStatus tetap sama ---
+async function createQris(project, apikey, amount) {
+    try {
+        const res = await axios.post(
+            'https://app.pakasir.com/api/transactioncreate/qris',
+            {
+                project,
+                order_id: (global.namebot || 'BOT').replace(/\s/g, '_') + '-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+                amount,
+                api_key: apikey,
+            },
+            { headers: { 'Content-Type': 'application/json' } }
+        );
+        if (!res.data?.payment) throw new Error('Gagal membuat QRIS.');
+        return res.data.payment;
+    } catch (e) {
+        throw new Error('Gagal membuat QRIS: ' + e.message);
+    }
+}
+
+async function checkStatus(project, apikey, orderId, amount) {
+    try {
+        const res = await axios.get(`https://app.pakasir.com/api/transactiondetail?project=${project}&amount=${amount}&order_id=${orderId}&api_key=${apikey}`);
+        return res.data.transaction;
+    } catch (e) {
+        throw new Error('Gagal mengecek status QRIS: ' + e.message);
+    }
+}
