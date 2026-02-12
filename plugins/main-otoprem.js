@@ -2,12 +2,13 @@ import axios from 'axios';
 import { delay } from 'baileys';
 
 let handler = async (m, { conn, text, command, usedPrefix }) => {
-    let nomor = m.sender.replace(/[^0-9]/g, '')
+    let nomor = m.sender.split('@')[0].split(':')[0]
     let who = nomor + '@s.whatsapp.net'
     
-    // NOMINAL ASLI (Misal kamu ingin user bayar 2000 pas)
+    // NOMINAL DASAR (Sebelum Pajak)
     let harganya = 2000; 
     
+    // Memastikan user terdaftar di database global
     if (!global.db.data.users[who]) {
         global.db.data.users[who] = {
             name: await conn.getName(who) || 'Unknown',
@@ -22,83 +23,100 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
     
     let user = global.db.data.users[who]
 
-    if (!global.pakasir || !pakasir.slug || !pakasir.apikey) return m.reply('`pakasir.slug` dan `pakasir.apikey` belum di isi.');
+    // Validasi konfigurasi API
+    if (!global.pakasir || !pakasir.slug || !pakasir.apikey) {
+        return m.reply('❌ Konfigurasi `pakasir.slug` atau `pakasir.apikey` belum diisi di global settings.');
+    }
 
-    // Membuat transaksi di Pakasir
-    const cqris = await createQris(pakasir.slug, pakasir.apikey, harganya);
-    
-    // Menghitung Expired
-    const expiredAt = new Date(cqris.expired_at);
-    expiredAt.setHours(expiredAt.getHours() - 1);
-    expiredAt.setMinutes(expiredAt.getMinutes() + (global.pakasir.expired || 1));
-    
-    const expiredTime = expiredAt.toLocaleTimeString('id-ID', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-        timeZone: 'Asia/Jakarta',
-    });
+    try {
+        // 1. Membuat transaksi QRIS melalui API Pakasir
+        const cqris = await createQris(pakasir.slug, pakasir.apikey, harganya);
+        
+        // 2. Menghitung Waktu Kadaluarsa QRIS
+        const expiredAt = new Date(cqris.expired_at);
+        expiredAt.setHours(expiredAt.getHours() - 1);
+        expiredAt.setMinutes(expiredAt.getMinutes() + (global.pakasir.expired || 1));
+        
+        const expiredTime = expiredAt.toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+            timeZone: 'Asia/Jakarta',
+        });
 
-    // PENTING: Gunakan cqris.total_payment sebagai angka mutlak yang harus dibayar user
-    const totalHarusBayar = cqris.total_payment 
+        // 3. Mengambil Total Pembayaran Akhir (Sudah termasuk pajak MDR 0.7% + Rp340)
+        const totalHarusBayar = cqris.total_payment 
 
-    const sQris = await conn.sendMessage(
-        m.chat,
-        {
-            image: { url: `https://api.qrserver.com/v1/create-qr-code/?size=750x750&data=${encodeURIComponent(cqris.payment_number)}&qzone=4&format=gif&bgcolor=576A8F&color=FFF8DE` },
-            caption:
-                `💳 *QRIS PREMIUM ${global.namebot || 'BOT'}*\n\n` +
-                `✨ *Benefit:* Premium 30 Hari\n` +
-                `🕓 *Expired:* ${expiredTime} WIB\n` +
-                `💸 *Biaya Admin:* Rp${cqris.fee.toLocaleString('id-ID')}\n` +
-                `💰 *TOTAL TAGIHAN:* Rp${totalHarusBayar.toLocaleString('id-ID')}\n` +
-                `📦 *Order ID:* #${cqris.order_id}\n\n` +
-                `*Note:* Pastikan nominal yang tertera saat scan sesuai dengan total di atas!`
-        },
-        { quoted: m }
-    );
+        const sQris = await conn.sendMessage(
+            m.chat,
+            {
+                image: { url: `https://api.qrserver.com/v1/create-qr-code/?size=750x750&data=${encodeURIComponent(cqris.payment_number)}&qzone=4&format=gif&bgcolor=576A8F&color=FFF8DE` },
+                caption:
+                    `💳 *QRIS PREMIUM ${global.namebot || 'BOT'}*\n\n` +
+                    `✨ *Benefit:* Premium 30 Hari\n` +
+                    `🕓 *Expired:* ${expiredTime} WIB\n` +
+                    `💸 *Biaya Admin:* Rp${cqris.fee.toLocaleString('id-ID')}\n` +
+                    `💰 *TOTAL TAGIHAN:* Rp${totalHarusBayar.toLocaleString('id-ID')}\n` +
+                    `📦 *Order ID:* #${cqris.order_id}\n\n` +
+                    `*PENTING:* Silakan scan dan pastikan nominal yang muncul sama dengan *Total Tagihan* di atas agar sistem dapat mendeteksi pembayaran secara otomatis.`
+            },
+            { quoted: m }
+        );
 
-    let status = '';
-    while (status !== 'completed') {
-        if (new Date() >= expiredAt) {
-            await conn.sendMessage(m.chat, { delete: sQris.key });
-            return m.reply('⚠️ QRIS sudah *expired*, silakan buat ulang.');
-        }
-
-        // Cek status dengan harganya (nominal dasar)
-        const res = await checkStatus(pakasir.slug, pakasir.apikey, cqris.order_id, harganya);
-        if (res && res.status === 'completed') {
-            status = 'completed';
-            
-            let hari = 30
-            let ms = 86400000 * hari
-            let now = Date.now()
-
-            if (user.premiumTime && user.premiumTime > now) {
-                user.premiumTime += ms
-            } else {
-                user.premiumTime = now + ms
+        // 4. Perulangan untuk mengecek status pembayaran secara real-time
+        let status = '';
+        while (status !== 'completed') {
+            // Cek jika waktu sudah melebihi batas kadaluarsa
+            if (new Date() >= expiredAt) {
+                await conn.sendMessage(m.chat, { delete: sQris.key });
+                return m.reply('⚠️ QRIS sudah *expired*, silakan buat ulang perintah .buyprem');
             }
-            user.premium = true
 
-            let tanggalBerakhir = new Date(user.premiumTime).toLocaleDateString('id-ID', { 
-                day: 'numeric', 
-                month: 'long', 
-                year: 'numeric' 
-            })
-
-            await conn.sendMessage(m.chat, { delete: sQris.key });
+            const res = await checkStatus(pakasir.slug, pakasir.apikey, cqris.order_id, harganya);
             
-            let teksSuccess = `✅ *PEMBAYARAN BERHASIL*\n\n` +
-                `👤 *User:* @${who.split('@')[0]}\n` +
-                `⭐ *Status:* Premium Aktif (30 Hari)\n` +
-                `📅 *Berakhir:* ${tanggalBerakhir}\n\n` +
-                `Terima kasih sudah berlangganan 🙏`
+            if (res && res.status === 'completed') {
+                status = 'completed';
+                
+                // --- LOGIKA UPDATE PREMIUM 30 HARI ---
+                let hari = 30
+                let ms = 86400000 * hari
+                let now = Date.now()
 
-            await conn.sendMessage(m.chat, { text: teksSuccess, mentions: [who] }, { quoted: m })
-            break;
+                // Jika user masih punya sisa premium, maka durasi ditambah (stacking)
+                if (user.premiumTime && user.premiumTime > now) {
+                    user.premiumTime += ms
+                } else {
+                    user.premiumTime = now + ms
+                }
+                user.premium = true
+
+                let tanggalBerakhir = new Date(user.premiumTime).toLocaleDateString('id-ID', { 
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric' 
+                })
+
+                // Hapus pesan QRIS agar tidak discan ulang
+                await conn.sendMessage(m.chat, { delete: sQris.key });
+                
+                let teksSuccess = `✅ *PEMBAYARAN BERHASIL*\n\n` +
+                    `👤 *User:* @${who.split('@')[0]}\n` +
+                    `⭐ *Status:* Premium Aktif\n` +
+                    `🕒 *Durasi:* +${hari} Hari\n` +
+                    `📅 *Berakhir:* ${tanggalBerakhir}\n\n` +
+                    `Terima kasih sudah mendukung ${global.namebot || 'Bot'}! 🙏`
+
+                await conn.sendMessage(m.chat, { text: teksSuccess, mentions: [who] }, { quoted: m })
+                break;
+            }
+            
+            // Jeda 5 detik sebelum cek status kembali
+            await delay(5000);
         }
-        await delay(5000);
+
+    } catch (e) {
+        console.error(e);
+        m.reply(`❌ Terjadi kesalahan: ${e.message}`);
     }
 };
 
@@ -107,8 +125,9 @@ handler.tags = ['main'];
 handler.command = /^(buyprem)$/i;
 export default handler;
 
-
-// --- Fungsi createQris dan checkStatus tetap sama ---
+/**
+ * Fungsi untuk membuat transaksi di API Pakasir
+ */
 async function createQris(project, apikey, amount) {
     try {
         const res = await axios.post(
@@ -121,18 +140,22 @@ async function createQris(project, apikey, amount) {
             },
             { headers: { 'Content-Type': 'application/json' } }
         );
-        if (!res.data?.payment) throw new Error('Gagal membuat QRIS.');
+
+        if (!res.data?.payment) throw new Error('Gagal mendapatkan data pembayaran dari API.');
         return res.data.payment;
     } catch (e) {
-        throw new Error('Gagal membuat QRIS: ' + e.message);
+        throw new Error('Gagal membuat QRIS: ' + (e.response?.data?.message || e.message));
     }
 }
 
+/**
+ * Fungsi untuk mengecek detail transaksi di API Pakasir
+ */
 async function checkStatus(project, apikey, orderId, amount) {
     try {
         const res = await axios.get(`https://app.pakasir.com/api/transactiondetail?project=${project}&amount=${amount}&order_id=${orderId}&api_key=${apikey}`);
         return res.data.transaction;
     } catch (e) {
-        throw new Error('Gagal mengecek status QRIS: ' + e.message);
+        return null; // Mengembalikan null agar loop tetap berjalan saat ada gangguan jaringan sementara
     }
 }
