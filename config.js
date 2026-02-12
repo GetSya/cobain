@@ -15,7 +15,7 @@ global.eror = '🚩 Terjadi Kesalahan...';
 global.pakasir = {
 	slug: 'acamedia',
 	apikey: 'ZU0JBrZtUZSqI8nAqz73zbtgJFtj0tY5',
-	expired: 30, //1 = 1menit. 30 = 30menit
+	expired: 2, //1 = 1menit. 30 = 30menit
 };
 
 global.stickpack = 'ᴄʀᴇᴀᴛᴇᴅ';
