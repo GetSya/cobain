@@ -2,11 +2,11 @@ import { smsg } from './lib/simple.js';
 import { format } from 'util';
 import { fileURLToPath } from 'url';
 import path from 'path';
-import { unwatchFile, watchFile } from 'fs';
+import fs, { unwatchFile, watchFile } from 'fs'; // Tambahkan fs di sini
 import chalk from 'chalk';
 
 const isNumber = (x) => typeof x === 'number' && !isNaN(x);
-
+if (!global.anonymous) global.anonymous = {}
 /**
  * Handle messages upsert
  * @param {import('baileys').BaileysEventMap<unknown>['messages.upsert']} groupsUpdate
@@ -38,6 +38,71 @@ if (global.opts?.gconly && !m.isGroup) return
 	if (!global.db.data.settings[this.user.jid].public && !isMods && !isOwner && !m.fromMe) return;
 if (m.isBaileys) return;
 m.exp += Math.ceil(Math.random() * 10);
+		// --- RELAXED ANONYMOUS SYSTEM START ---
+const anonPath = './json/anonymous.json'
+if (!m.isGroup && fs.existsSync(anonPath)) {
+    let anonData = JSON.parse(fs.readFileSync(anonPath, 'utf-8') || '{}')
+    let jid = m.sender.split('@')[0].split(':')[0] + '@s.whatsapp.net'
+    let room = anonData[jid]
+    let isCommand = global.prefix.test(m.text)
+
+    if (room && room.status === 'chatting' && !isCommand) {
+        let partner = room.a === jid ? room.b : room.a
+        let msg = m.text ? m.text.toLowerCase() : ''
+        let user = global.db.data.users[m.sender]
+
+        // A. LOGIKA PERSETUJUAN KONTAK
+        if (global.anonymous[jid]?.pendingAction) {
+            if (msg === 'setuju') {
+                let { pending, from } = global.anonymous[jid].pendingAction
+                await this.copyNForward(jid, pending, true)
+                await this.reply(from, `✅ *Partner setuju!* Kontak berhasil terkirim.`, null)
+                delete global.anonymous[jid].pendingAction
+                return
+            } else if (msg === 'tolak') {
+                let { from } = global.anonymous[jid].pendingAction
+                await this.reply(from, `❌ *Partner menolak* kiriman kontak kamu.`, null)
+                delete global.anonymous[jid].pendingAction
+                return m.reply('Okelah, permintaan ditolak.')
+            }
+        }
+
+        // B. PROTEKSI KHUSUS KONTAK
+        if (m.mtype === 'contactMessage' || m.mtype === 'contactsArrayMessage') {
+            global.anonymous[partner] = { 
+                pendingAction: { pending: m, from: jid } 
+            }
+            await m.reply(`⏳ *Izin Diperlukan.* Mengirim kontak butuh persetujuan partner.`)
+            await this.reply(partner, `⚠️ *Partner ingin mengirim Kartu Kontak.*\n\nKetik *setuju* atau *tolak*`, null)
+            return
+        }
+
+        // C. SECURITY & ANTI-TOXIC
+        const filterLink = /(https?:\/\/|www\.|wa\.me)/gi
+        if (m.text && filterLink.test(m.text)) return m.reply('🚫 *Dilarang mengirim Link!*')
+
+        const badWords = ['anjing', 'bangsat', 'memek', 'kontol']
+        if (badWords.some(word => msg.includes(word))) {
+            user.warn = (user.warn || 0) + 1
+            if (user.warn >= 5) {
+                await m.reply('🚫 *BANNED:* Kamu terlalu toxic.')
+                delete anonData[partner]; delete anonData[jid]
+                fs.writeFileSync(anonPath, JSON.stringify(anonData, null, 2))
+                return
+            }
+            return m.reply(`⚠️ *Pesan Kasar!* Pesan tidak diteruskan.`)
+        }
+
+        // D. FORWARDING (MENGGUNAKAN TRY-CATCH AGAR TIDAK LOG BINER JIKA ERROR)
+        try {
+            await this.copyNForward(partner, m, true)
+        } catch (e) {
+            console.error("Gagal meneruskan pesan anonymous")
+        }
+        return 
+    }
+}
+// --- RELAXED ANONYMOUS SYSTEM END ---
 
 		let usedPrefix;
 		let _user = global.db.data && global.db.data.users && global.db.data.users[m.sender];

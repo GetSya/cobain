@@ -49,7 +49,6 @@ handler.help = ['brat <text>']
 handler.tags = ['sticker']
 handler.command = /^(brat)$/i
 handler.limit = true
-handler.group = false // Ubah ke true jika ingin khusus grup saja
 handler.register = false
 
 export default handler

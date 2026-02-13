@@ -1,86 +1,44 @@
-import fetch from 'node-fetch';
-import fs from 'fs';
+import fs from 'fs'
 
-let handler = async (m, { conn, args, text, usedPrefix, command }) => {
-    conn.slots = conn.slots || {};
-    let user = global.db.data.users[m.sender];
+let handler = async (m, { conn, args }) => {
+    const uangPath = './json/uang.json'
+    let dataUang = JSON.parse(fs.readFileSync(uangPath, 'utf-8'))
+    let jid = m.sender.split('@')[0] + '@s.whatsapp.net'
+    let userMoney = dataUang[jid] || 0
 
-    if (m.chat in conn.slots) return m.reply('Masih ada permainan slot berlangsung di sini. Tunggu sampai selesai!');
-    conn.slots[m.chat] = true;
+    let taruhan = args[0] ? parseInt(args[0]) : 100
+    if (isNaN(taruhan) || taruhan < 100) throw '❌ Minimal taruhan adalah Rp100'
+    if (userMoney < taruhan) throw '❌ Uang kamu tidak cukup untuk taruhan ini!'
 
-    try {
-        if (args.length < 1 || isNaN(args[0]) || args[0] <= 0) {
-            return m.reply(`Gunakan format *${usedPrefix}${command} [jumlah]*, dan jumlah harus angka positif.`);
-        }
+    const emojis = ["🍎", "🍐", "🍋", "🍌", "🍒"]
+    let a = emojis[Math.floor(Math.random() * emojis.length)]
+    let b = emojis[Math.floor(Math.random() * emojis.length)]
+    let c = emojis[Math.floor(Math.random() * emojis.length)]
 
-        let count = parseInt(args[0]);
-        if (user.money < count) throw 'Uang kamu tidak cukup.';
+    let menang = false
+    let hadiah = 0
 
-        let symbols = ['🍊', '🍇', '🍉', '🍌', '🍍'];
-        const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-        // Kirim pesan awal
-        let initialMessage = await conn.sendMessage(m.chat, { 
-            text: '*🎰 VIRTUAL SLOTS 🎰*\n\nMemulai permainan... Tunggu sebentar!' 
-        }, { quoted: m });
-
-        // Animasi slot acak (20 kali)
-        for (let i = 0; i < 20; i++) { // Diubah dari 3 ke 20 iterasi
-            let randomText = symbols.map(() => pickRandom(symbols)).join('|');
-            await sleep(1000); // Tunggu 1 detik setiap iterasi
-            await conn.sendMessage(m.chat, { 
-                text: `*🎰 VIRTUAL SLOTS 🎰*\n\nStatus: ${randomText}`, 
-                edit: initialMessage.key // Gunakan metode ini untuk menyimulasikan edit
-            });
-        }
-
-        // Tambahkan delay 2 detik sebelum hasil akhir
-        await sleep(2000);
-
-        // Hasil akhir slot
-        let spins = Array.from({ length: 9 }, () => pickRandom(symbols));
-        user.money -= count;
-
-        let resultMessage = `*🎰 VIRTUAL SLOTS 🎰*\n\n${spins.slice(0, 3).join('|')}\n${spins.slice(3, 6).join('|')} <<==\n${spins.slice(6).join('|')}`;
-
-        let winMessage;
-        let reward = 0;
-
-        if (new Set(spins).size === 1) { // Semua simbol sama
-            winMessage = 'BIG JACKPOT 🥳🥳';
-            reward = count * 4;
-        } else if (spins[3] === spins[4] && spins[4] === spins[5]) { // Baris tengah sama
-            winMessage = 'JACKPOT 🥳';
-            reward = count * 2;
-        } else if ((spins[0] === spins[1] && spins[1] === spins[2]) || (spins[6] === spins[7] && spins[7] === spins[8])) { // Baris atas/bawah sama
-            winMessage = 'DIKIT LAGI!!';
-        } else {
-            winMessage = 'YOU LOSE';
-        }
-
-        user.money += reward;
-        resultMessage += `\n\n*${winMessage}* ${reward > 0 ? `+${reward}` : `-${count}`}\nSaldo: ${user.money}`;
-
-        // Kirim hasil akhir
-        await conn.sendMessage(m.chat, { 
-            text: resultMessage,
-            edit: initialMessage.key // Ganti pesan lama dengan pesan hasil akhir
-        });
-
-    } catch (e) {
-        console.error(e);
-        conn.reply(m.chat, 'Terjadi kesalahan, coba lagi nanti.', m);
-    } finally {
-        delete conn.slots[m.chat];
+    if (a === b && b === c) {
+        menang = true
+        hadiah = taruhan * 10 // Jackpot 3 sama
+    } else if (a === b || b === c || a === c) {
+        menang = true
+        hadiah = Math.ceil(taruhan * 1.5) // 2 sama
     }
-};
 
-handler.help = ['slot', 'jackpot']
+    if (menang) {
+        dataUang[jid] += hadiah
+        m.reply(`[ 🎰 | SLOT ]\n────────\n${a} : ${b} : ${c}\n────────\n🎉 MENANG! Kamu dapat *Rp${hadiah.toLocaleString('id-ID')}*`)
+    } else {
+        dataUang[jid] -= taruhan
+        m.reply(`[ 🎰 | SLOT ]\n────────\n${a} : ${b} : ${c}\n────────\n💀 KALAH! Saldo terpotong *Rp${taruhan.toLocaleString('id-ID')}*`)
+    }
+
+    fs.writeFileSync(uangPath, JSON.stringify(dataUang, null, 2))
+}
+
+handler.help = ['slot [jumlah]']
 handler.tags = ['game']
-handler.command = /^slots?|jac?kpot$/i
+handler.command = /^(slot)$/i
 
 export default handler
-
-function pickRandom(list) {
-    return list[Math.floor(Math.random() * list.length)];
-}

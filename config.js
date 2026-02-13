@@ -18,8 +18,8 @@ global.pakasir = {
 	expired: 2, //1 = 1menit. 30 = 30menit
 };
 
-global.stickpack = 'ᴄʀᴇᴀᴛᴇᴅ';
-global.stickauth = namebot;
+global.stickpack = 'My Sticker';
+global.stickauth = 'Sticker Akuh';
 
 global.multiplier = 38; // The higher, The harder levelup
 

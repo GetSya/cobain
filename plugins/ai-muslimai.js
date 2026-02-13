@@ -1,3 +1,5 @@
+import handler from "./transfer";
+
 let oota = async (m, {
     conn,
     text
@@ -16,5 +18,6 @@ let oota = async (m, {
 
 oota.help = oota.command = ["muslim-ai"]
 oota.tags = ["ai"];
+handler.limit = true
 
 export default oota
