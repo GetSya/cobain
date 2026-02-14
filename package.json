@@ -37,11 +37,13 @@
     "@bochilteam/scraper": "^5.0.1",
     "@bochilteam/scraper-sosmed": "^1.0.5",
     "@elainaa/tls": "^1.0.3",
+    "adm-zip": "^0.5.16",
     "awesome-phonenumber": "^5.10.0",
     "axios": "^1.13.2",
     "baileys": "latest",
     "bing-translate-api": "^4.0.2",
     "canvafy": "^7.2.1",
+    "canvas": "^3.2.1",
     "cfonts": "^3.2.0",
     "chalk": "^5.3.0",
     "cheerio": "1.0.0-rc.12",
@@ -68,6 +70,7 @@
     "pino": "^8.15.0",
     "qrcode": "^1.5.3",
     "similarity": "^1.2.1",
+    "skia-canvas": "^3.0.8",
     "syntax-error": "^1.4.0",
     "url-regex-safe": "^4.0.0",
     "uuid": "^13.0.0",
@@ -84,4 +87,4 @@
     "globals": "^16.5.0",
     "prettier": "^3.6.2"
   }
-  }
+}

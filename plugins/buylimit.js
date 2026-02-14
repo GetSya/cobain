@@ -1,37 +1,27 @@
-import fs from 'fs'
-import path from 'path'
-
-let handler = async (m, { args, conn }) => {
-    const uangPath = path.join(process.cwd(), 'json', 'uang.json')
+let handler = async (m, { args, conn, usedPrefix, command }) => {
     const price = 3500 // Harga per 1 limit
+    let user = global.db.data.users[m.sender]
     
-    if (!args[0] || isNaN(args[0])) throw `Gunakan format: *.buylimit [jumlah]*\nContoh: *.buylimit 10*`
+    if (!args[0] || isNaN(args[0])) throw `Gunakan format: *${usedPrefix + command} [jumlah]*\nContoh: *${usedPrefix + command} 10*`
     
-    let count = Math.max(1, parseInt(args[0]))
+    let count = Math.max(1, parseInt(args[1] ? args[1] : args[0]))
     let totalCost = price * count
-    let jid = m.sender.split('@')[0].split(':')[0] + '@s.whatsapp.net'
 
-    // Baca database uang
-    let dataUang = {}
-    if (fs.existsSync(uangPath)) {
-        dataUang = JSON.parse(fs.readFileSync(uangPath, 'utf-8'))
+    // Validasi Saldo (Mengambil langsung dari user.money di database global)
+    if ((user.money || 0) < totalCost) {
+        throw `❌ Uang kamu tidak cukup!\nTotal harga untuk *${count} limit* adalah *Rp${totalCost.toLocaleString('id-ID')}*\nSaldo kamu saat ini: *Rp${(user.money || 0).toLocaleString('id-ID')}*`
     }
-    
-    let userMoney = dataUang[jid] || 0
 
-    if (userMoney < totalCost) throw `❌ Uang kamu tidak cukup!\nTotal harga untuk *${count} limit* adalah *Rp${totalCost.toLocaleString('id-ID')}*\nSaldo kamu saat ini: *Rp${userMoney.toLocaleString('id-ID')}*`
+    // Eksekusi: Potong uang & Tambah limit
+    user.money -= totalCost
+    user.limit = (user.limit || 0) + count
 
-    // Potong uang dan simpan
-    dataUang[jid] -= totalCost
-    fs.writeFileSync(uangPath, JSON.stringify(dataUang, null, 2))
-
-    // Tambah limit ke database utama
-    global.db.data.users[m.sender].limit += count
-
-    conn.reply(m.chat, `✅ Berhasil membeli *${count}* limit seharga *Rp${totalCost.toLocaleString('id-ID')}*`, m)
+    conn.reply(m.chat, `✅ *PEMBELIAN BERHASIL*\n\n📦 Barang: *${count} Limit*\n💰 Total Harga: *Rp${totalCost.toLocaleString('id-ID')}*\n📊 Sisa Saldo: *Rp${user.money.toLocaleString('id-ID')}*\n✨ Sisa Limit: *${user.limit}*`, m)
 }
 
-handler.help = ['buylimit [jumlah]']
+handler.help = ['buylimit <jumlah>']
 handler.tags = ['ekonomi']
 handler.command = /^(buylimit|belilimit)$/i
+handler.register = true // Pastikan user terdaftar agar database aman
+
 export default handler

@@ -4,6 +4,11 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import fs, { unwatchFile, watchFile } from 'fs'; // Tambahkan fs di sini
 import chalk from 'chalk';
+import { Canvas, loadImage } from 'skia-canvas'; // Tambahkan di baris paling atas file
+const fontPath = './media/Fredoka.ttf';
+if (fs.existsSync(fontPath)) {
+    GlobalFonts.registerFromPath(fontPath, 'Fredoka');
+}
 
 const isNumber = (x) => typeof x === 'number' && !isNaN(x);
 if (!global.anonymous) global.anonymous = {}
@@ -103,6 +108,7 @@ if (!m.isGroup && fs.existsSync(anonPath)) {
     }
 }
 // --- RELAXED ANONYMOUS SYSTEM END ---
+
 
 		let usedPrefix;
 		let _user = global.db.data && global.db.data.users && global.db.data.users[m.sender];
@@ -377,63 +383,104 @@ if (!m.isGroup && fs.existsSync(anonPath)) {
  * Handle groups participants update
  * @param {import('baileys').BaileysEventMap<unknown>['group-participants.update']} groupsUpdate
  */
+/**
+ * Handle groups participants update
+ */
+/**
+ * Handle groups participants update
+ */
 export async function participantsUpdate({ id, participants, action, simulate = false }) {
-	// if (id in conn.chats) return // First login will spam
-	if (this.isInit && !simulate) return;
-	if (global.db.data == null) await loadDatabase();
-	let chat = global.db.data.chats[id] || {};
-	let text = '';
-	const groupMetadata = (conn.chats[id] || {}).metadata || (await this.groupMetadata(id));
-	switch (action) {
-		case 'add':
-		case 'remove':
-			if (chat.welcome) {
-				for (let user of participants) {
-					user = this.getJid(user?.phoneNumber || user.id);
-					let tamnel = await this.profilePictureUrl(user, 'preview');
-					text = (action === 'add' ? chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!' : chat.sBye || this.bye || conn.bye || 'Bye, @user!')
-						.replace('@user', `@${user.split('@')[0]}`)
-						.replace('@subject', this.getName(id))
-						.replace('@desc', groupMetadata.desc || '');
-					this.sendMessage(
-						id,
-						{
-							text,
-							contextInfo: {
-								mentionedJid: [user],
-								externalAdReply: {
-									title: action == 'add' ? '💌 WELCOME' : '🐾 BYE',
-									body: action == 'add' ? 'YAELAH BEBAN GROUP NAMBAH 1 :(' : 'BYE BEBAN! :)',
-									mediaType: 1,
-									previewType: 'PHOTO',
-									renderLargerThumbnail: true,
-									thumbnail: "",
-								},
-							},
-						},
-						{
-							ephemeralExpiration: groupMetadata.ephemeralDuration,
-						}
-					);
-				}
-			}
-			break;
-		case 'promote':
-		case 'demote':
-			for (let users of participants) {
-				let user = this.getJid(users?.phoneNumber || users.id);
-				text = (
-					action === 'promote'
-						? chat.sPromote || this.spromote || conn.spromote || '@user ```is now Admin```'
-						: chat.sDemote || this.sdemote || conn.sdemote || '@user ```is no longer Admin```'
-				)
-					.replace('@user', '@' + user.split('@')[0])
-					.replace('@subject', this.getName(id))
-					.replace('@desc', groupMetadata.desc || '');
-				if (chat.detect) this.sendMessage(id, { text, mentions: this.parseMention(text) });
-			}
-			break;
-	}
+    if (this.isInit && !simulate) return;
+    if (global.db.data == null) await loadDatabase();
+    let chat = global.db.data.chats[id] || {};
+    const groupMetadata = (conn.chats[id] || {}).metadata || (await this.groupMetadata(id));
+    
+    for (let user of participants) {
+        user = this.getJid(user?.phoneNumber || user.id);
+        
+        let isWelcome = (action === 'add' || action === 'remove') && chat.welcome;
+        let isDetect = (action === 'promote' || action === 'demote') && chat.detect;
+
+        if (isWelcome || isDetect) {
+            try {
+                const canvas = new Canvas(1200, 600);
+                const ctx = canvas.getContext('2d');
+
+                // 1. Latar Belakang berdasarkan aksi
+                let bgPath = action === 'remove' ? './media/left.jpg' : './media/welcome.jpg';
+                const background = await loadImage(fs.existsSync(bgPath) ? bgPath : 'https://telegra.ph/file/241d7180c09eba8614459.jpg');
+                ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+
+                // 2. Overlay Tipis (20% kegelapan)
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; 
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 3. Nama Grup (Paling Atas)
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                ctx.font = 'bold 40px sans-serif';
+                ctx.fillText(groupMetadata.subject, 600, 80); // Digeser ke Y: 80
+
+                // 4. Judul Aksi (Tengah Atas - WELCOME/GOOD BYE)
+                let title = '';
+                if (action === 'add') title = 'WELCOME';
+                if (action === 'remove') title = 'GOOD BYE';
+                if (action === 'promote') title = 'PROMOTED';
+                if (action === 'demote') title = 'DEMOTED';
+
+                ctx.font = 'bold 140px sans-serif';
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = 'black';
+                ctx.fillText(title, 600, 230); // Digeser ke Y: 230
+
+                // 5. Nama User (Di Bawah Judul)
+                ctx.shadowBlur = 0;
+                ctx.font = 'bold 60px sans-serif';
+                ctx.fillText(this.getName(user), 600, 310); // Digeser ke Y: 310
+
+                // 6. Icon User / Foto Profil (Sekarang berada di area bawah teks)
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(600, 450, 100, 0, Math.PI * 2, true); // Pusat Y di 450
+                ctx.closePath();
+                ctx.lineWidth = 12;
+                ctx.strokeStyle = '#ffffff';
+                ctx.stroke();
+                ctx.clip();
+
+                let pp;
+                try {
+                    pp = await loadImage(await this.profilePictureUrl(user, 'image'));
+                } catch (e) {
+                    pp = await loadImage('https://i.ibb.co/2WzLyGk/profile.jpg');
+                }
+                ctx.drawImage(pp, 500, 350, 200, 200); // Ukuran 200x200
+                ctx.restore();
+
+                // 7. Info Member/Status (Paling Bawah)
+                ctx.font = '30px sans-serif';
+                let subText = action === 'add' ? `Member ke-${groupMetadata.participants.length}` : (action === 'remove' ? 'Beban berkurang' : 'Authorized');
+                ctx.fillText(subText, 600, 580);
+
+                const buffer = await canvas.toBuffer('png');
+
+                let text = (action === 'add' ? chat.sWelcome || this.welcome || conn.welcome || 'Welcome, @user!' : chat.sBye || this.bye || conn.bye || 'Bye, @user!')
+                    .replace('@user', `@${user.split('@')[0]}`)
+                    .replace('@subject', groupMetadata.subject)
+                    .replace('@desc', groupMetadata.desc || '');
+
+                await this.sendMessage(id, {
+                    image: buffer,
+                    caption: text,
+                    mentions: [user]
+                });
+
+            } catch (e) {
+                console.error("Gagal Render Canvas Update:", e);
+                this.sendMessage(id, { text: `Update: @${user.split('@')[0]} (${action})`, mentions: [user] });
+            }
+        }
+    }
 }
 /**
  * Handle groups update

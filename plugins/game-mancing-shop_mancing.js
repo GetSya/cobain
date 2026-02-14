@@ -1,18 +1,11 @@
-import fs from 'fs'
-
 let handler = async (m, { conn, args, usedPrefix, command }) => {
-    const userPath = './json/user_stats.json'
-    const uangPath = './json/uang.json'
-
-    if (!fs.existsSync(userPath)) fs.writeFileSync(userPath, '{}')
-    let dataUser = JSON.parse(fs.readFileSync(userPath, 'utf-8') || '{}')
-    let dataUang = JSON.parse(fs.readFileSync(uangPath, 'utf-8') || '{}')
-
-    let jid = m.sender.split('@')[0].split(':')[0] + '@s.whatsapp.net'
-    if (!dataUser[jid]) dataUser[jid] = { level: 1, exp: 0, rod: 100, bait: 'None', bait_count: 0, location: 'Empang' }
+    let u = global.db.data.users[m.sender]
     
-    let u = dataUser[jid]
-    let saldo = dataUang[jid] || 0
+    // Inisialisasi properti mancing jika belum ada
+    if (u.rod === undefined) u.rod = 100
+    if (u.bait === undefined) u.bait = 'None'
+    if (u.bait_count === undefined) u.bait_count = 0
+    if (u.location === undefined) u.location = 'Empang'
 
     if (command === 'buybait' || command === 'beliumpan') {
         const listBait = {
@@ -33,32 +26,29 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
         }
 
         let totalHarga = listBait[type] * count
-        if (saldo < totalHarga) throw `❌ Duit kurang Rp${(totalHarga - saldo).toLocaleString()}`
+        if (u.money < totalHarga) throw `❌ Duit kurang Rp${(totalHarga - u.money).toLocaleString()}`
 
-        dataUang[jid] -= totalHarga
+        u.money -= totalHarga
         let namaBait = type.charAt(0).toUpperCase() + type.slice(1)
         
         if (u.bait === namaBait) u.bait_count += count
         else { u.bait = namaBait; u.bait_count = count }
         
-        fs.writeFileSync(userPath, JSON.stringify(dataUser, null, 2))
-        fs.writeFileSync(uangPath, JSON.stringify(dataUang, null, 2))
         return m.reply(`✅ Berhasil beli *${count} ${u.bait}* seharga Rp${totalHarga.toLocaleString()}!`)
     }
 
     if (command === 'repair') {
         if (u.rod >= 100) throw '🛠️ Pancinganmu masih bagus!'
         let cost = (100 - u.rod) * 200
-        if (saldo < cost) throw `❌ Butuh Rp${cost.toLocaleString()} untuk repair.`
+        if (u.money < cost) throw `❌ Butuh Rp${cost.toLocaleString()} untuk repair.`
 
-        dataUang[jid] -= cost
+        u.money -= cost
         u.rod = 100
-        fs.writeFileSync(userPath, JSON.stringify(dataUser, null, 2))
-        fs.writeFileSync(uangPath, JSON.stringify(dataUang, null, 2))
         return m.reply(`🛠️ *REPAIR SUKSES*\nBiaya: *Rp${cost.toLocaleString()}*`)
     }
 }
-handler.help = ['beliumpan']
+handler.help = ['beliumpan', 'repair']
+handler.tags = ['game']
 handler.command = /^(buybait|beliumpan|repair)$/i
 handler.register = true
 export default handler

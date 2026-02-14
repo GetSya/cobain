@@ -6,6 +6,7 @@ import { createRequire } from 'module'; // Bring in the ability to create the 'r
 import path, { join } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { platform } from 'process';
+import fetch from 'node-fetch'
 global.__filename = function filename(pathURL = import.meta.url, rmPrefix = platform !== 'win32') {
 	return rmPrefix ? (/file:\/\/\//.test(pathURL) ? fileURLToPath(pathURL) : pathURL) : pathToFileURL(pathURL).toString();
 };
@@ -287,6 +288,65 @@ global.reload = async (_ev, filename) => {
 Object.freeze(global.reload);
 fs.watch(pluginFolder, global.reload);
 await global.reloadHandler();
+// Tambahkan log ini di dalam setInterval main.js
+console.log(`[DEBUG SHOLAT] Jam Sekarang: ${timeNow} | Mencari jadwal untuk ${uniqueCities.length} kota unik...`)
+// --- FITUR AUTO NOTIF SHOLAT ---
+setInterval(async () => {
+    // Pastikan database dan koneksi sudah siap
+    if (!global.db.data || !global.conn) return
+
+    let now = new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" });
+    let timeNow = new Date(now).getHours().toString().padStart(2, '0') + ':' + new Date(now).getMinutes().toString().padStart(2, '0');
+    let dateSearch = new Date(now).toISOString().split('T')[0];
+
+    let allChats = Object.keys(global.db.data.chats)
+    
+    // Ambil semua ID Kota unik yang mengaktifkan notifsholat
+    let uniqueCities = [...new Set(allChats.map(id => global.db.data.chats[id].kotaSholat).filter(v => v))]
+
+    for (let idKota of uniqueCities) {
+        try {
+            // Hit API Jadwal Sholat
+            let res = await fetch(`https://api.myquran.com/v2/sholat/jadwal/${idKota}/${dateSearch}`)
+            let json = await res.json()
+            if (!json.status) continue
+            
+            let j = json.data.jadwal
+            let jadwalSholat = {
+                subuh: j.subuh,
+                dzuhur: j.dzuhur,
+                ashar: j.ashar,
+                maghrib: j.maghrib,
+                isya: j.isya
+            }
+
+            // Cek kecocokan waktu
+            for (let [nama, waktu] of Object.entries(jadwalSholat)) {
+                if (timeNow === waktu) {
+                    // Kirim pesan ke semua chat yang berlangganan kota ini
+                    for (let jid of allChats) {
+                        let chat = global.db.data.chats[jid]
+                        
+                        // Validasi: Notif ON, ID Kota Sama, dan Belum dikirim di menit yang sama (Anti-Spam)
+                        if (chat.notifsholat && chat.kotaSholat === idKota && chat.lastNotif !== waktu) {
+                            let caption = `🔔 *WAKTUNYA SHOLAT ${nama.toUpperCase()}* 🔔\n\n`
+                            caption += `📍 Wilayah: *${json.data.lokasi}*\n`
+                            caption += `⏰ Waktu: *${waktu}* WIB\n\n`
+                            caption += `_"Shalatlah tepat pada waktunya, sesungguhnya shalat itu adalah kewajiban yang ditentukan waktunya atas orang-orang yang beriman."_`
+                            
+                            await global.conn.sendMessage(jid, { text: caption })
+                            
+                            // Tandai agar tidak kirim berkali-kali di menit yang sama
+                            chat.lastNotif = waktu 
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            // console.error("Error Autonotif Sholat:", e)
+        }
+    }
+}, 30 * 1000); // Cek setiap 30 detik untuk akurasi
 
 // Quick Test
 async function _quickTest() {
